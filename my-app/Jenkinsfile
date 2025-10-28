@@ -1,0 +1,58 @@
+pipeline {
+  agent { label 'worker' }  // label of your agent node
+  environment {
+    AWS_DEFAULT_REGION = "us-east-1"
+    ECR_REGISTRY = "030172394996.dkr.ecr.us-east-1.amazonaws.com/my-app"
+    ECR_REPOSITORY = "my-app"
+    IMAGE_TAG = "${env.BUILD_NUMBER}"
+  }
+  stages {
+    stage('Checkout') {
+      steps {
+        git credentialsId: 'github-creds-id', url: 'https://github.com/naveenseema/git-lab.git'
+      }
+    }
+
+    stage('Login to ECR') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'aws-creds', usernameVariable: 'AWS_KEY', passwordVariable: 'AWS_SECRET')]) {
+          sh '''
+            aws configure set aws_access_key_id $AWS_KEY
+            aws configure set aws_secret_access_key $AWS_SECRET
+            aws configure set region ${AWS_DEFAULT_REGION}
+            aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+          '''
+        }
+      }
+    }
+
+    stage('Build & Push Image') {
+      steps {
+        sh """
+          docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} .
+          docker tag ${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+        """
+      }
+    }
+
+    stage('Deploy to EKS') {
+      steps {
+        // assume agent has awscli, kubectl, and proper kubeconfig (or create kubeconfig now)
+        sh """
+          aws eks update-kubeconfig --name demo-eks-lab --region ${AWS_DEFAULT_REGION}
+          kubectl set image deployment/my-app my-app=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} --record
+        """
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "Pipeline completed successfully."
+    }
+    failure {
+      echo "Pipeline failed."
+    }
+  }
+}

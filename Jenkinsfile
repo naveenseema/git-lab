@@ -13,17 +13,16 @@ pipeline {
       }
     }
 
-    stage('Login to ECR') {
-      stage('Login to ECR') {
-  steps {
-    withAWS(credentials: 'aws-creds', region: "${AWS_DEFAULT_REGION}") {
-      sh '''
-        aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | \
-        docker login --username AWS --password-stdin ${ECR_REGISTRY}
-      '''
+  stage('Login to ECR') {
+      steps {
+        withAWS(credentials: 'aws-creds', region: "${AWS_DEFAULT_REGION}") {
+          sh '''
+            aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | \
+            docker login --username AWS --password-stdin ${ECR_REGISTRY}
+          '''
+        }
+      }
     }
-  }
-}
 
     stage('Build & Push Image') {
       steps {

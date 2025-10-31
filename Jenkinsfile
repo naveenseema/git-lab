@@ -2,7 +2,7 @@ pipeline {
   agent { label 'worker' }  // label of your agent node
   environment {
     AWS_DEFAULT_REGION = "us-east-1"
-    ECR_REGISTRY = "030172394996.dkr.ecr.us-east-1.amazonaws.com/my-app"
+    ECR_REGISTRY = "030172394996.dkr.ecr.us-east-1.amazonaws.com"
     ECR_REPOSITORY = "my-app"
     IMAGE_TAG = "${env.BUILD_NUMBER}"
   }

@@ -9,7 +9,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git credentialsId: 'github-creds-id', url: 'https://github.com/naveenseema/git-lab.git'
+        git branch: 'main', credentialsId: 'github-creds-id', url: 'https://github.com/naveenseema/git-lab.git'
       }
     }
 

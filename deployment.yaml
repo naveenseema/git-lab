@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: my-app
-        image: 030172394996.dkr.ecr.us-east-1.amazonaws.com/my-app
+        image: 030172394996.dkr.ecr.us-east-1.amazonaws.com/my-app:28
         ports:
         - containerPort: 5000
         imagePullPolicy: Always

@@ -6,6 +6,7 @@ pipeline {
     ECR_REPOSITORY = "my-app"
     IMAGE_TAG = "${env.BUILD_NUMBER}"
   }
+
   stages {
     stage('Checkout') {
       steps {
@@ -13,7 +14,7 @@ pipeline {
       }
     }
 
-  stage('Login to ECR') {
+    stage('Login to ECR') {
       steps {
         withAWS(credentials: 'aws-creds', region: "${AWS_DEFAULT_REGION}") {
           sh '''
@@ -36,12 +37,9 @@ pipeline {
 
     stage('Deploy to EKS') {
       steps {
-        // assume agent has awscli, kubectl, and proper kubeconfig (or create kubeconfig now)
         sh """
-          # Configure kubeconfig for EKS cluster
           aws eks update-kubeconfig --name demo-eks-lab --region ${AWS_DEFAULT_REGION}
 
-          # Check if deployment exists
           if kubectl get deployment my-app >/dev/null 2>&1; then
             echo "Deployment exists — updating image..."
             kubectl set image deployment/my-app my-app=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} --record
@@ -51,11 +49,11 @@ pipeline {
             kubectl apply -f service.yaml
           fi
 
-          # Verify rollout status
           kubectl rollout status deployment/my-app
         """
       }
     }
+  }
 
   post {
     success {

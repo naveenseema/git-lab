@@ -35,27 +35,27 @@ pipeline {
     }
 
     stage('Deploy to EKS') {
-  steps {
-    // assume agent has awscli, kubectl, and proper kubeconfig (or create kubeconfig now)
-    sh """
-      # Configure kubeconfig for EKS cluster
-      aws eks update-kubeconfig --name demo-eks-lab --region ${AWS_DEFAULT_REGION}
+      steps {
+        // assume agent has awscli, kubectl, and proper kubeconfig (or create kubeconfig now)
+        sh """
+          # Configure kubeconfig for EKS cluster
+          aws eks update-kubeconfig --name demo-eks-lab --region ${AWS_DEFAULT_REGION}
 
-      # Check if deployment exists
-      if kubectl get deployment my-app >/dev/null 2>&1; then
-        echo "Deployment exists — updating image..."
-        kubectl set image deployment/my-app my-app=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} --record
-      else
-        echo "Deployment not found — applying manifests..."
-        kubectl apply -f deployment.yaml
-        kubectl apply -f service.yaml
-      fi
+          # Check if deployment exists
+          if kubectl get deployment my-app >/dev/null 2>&1; then
+            echo "Deployment exists — updating image..."
+            kubectl set image deployment/my-app my-app=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} --record
+          else
+            echo "Deployment not found — applying manifests..."
+            kubectl apply -f deployment.yaml
+            kubectl apply -f service.yaml
+          fi
 
-      # Verify rollout status
-      kubectl rollout status deployment/my-app
-    """
-  }
-}
+          # Verify rollout status
+          kubectl rollout status deployment/my-app
+        """
+      }
+    }
 
   post {
     success {

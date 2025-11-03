@@ -40,6 +40,11 @@ pipeline {
         sh """
           aws eks update-kubeconfig --name demo-eks-lab --region ${AWS_DEFAULT_REGION}
           kubectl set image deployment/my-app my-app=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} --record
+         else
+          echo "Deployment not found — applying manifests..."
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+        fi
         """
       }
     }
